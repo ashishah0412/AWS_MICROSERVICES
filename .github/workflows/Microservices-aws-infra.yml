@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 env:
-  TF_WORKING_DIR: AWS_MICROSERVICES/aws_infra/
+  TF_WORKING_DIR: aws_infra/
 
 jobs:
   terraform:
