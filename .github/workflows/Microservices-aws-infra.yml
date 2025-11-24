@@ -1,4 +1,4 @@
-name: Terraform CI/CD Pipeline
+name: AWS Microservices Infra CI/CD Pipeline
 
 on:
   push:
@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 env:
-  TF_WORKING_DIR: 02-Microservices-Architecture/aws_infra/
+  TF_WORKING_DIR: AWS_MICROSERVICES/aws_infra/
 
 jobs:
   terraform:
@@ -39,6 +39,4 @@ jobs:
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform plan -input=false -var-file=envs/prod.tfvars -out=tfplan -no-color | tee plan_output.txt  # Generate a new tfplan
 
-      - name: Terraform Destroy
-        working-directory: ${{ env.TF_WORKING_DIR }}
-        run: terraform destroy -auto-approve -var-file=envs/prod.tfvars  # Apply the destruction plan
+     
