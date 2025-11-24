@@ -30,7 +30,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      # Re-run Terraform Plan here to regenerate tfplan before destroy
+      # Re-run the Terraform Plan here to regenerate tfplan before destroy
       - name: Terraform Init
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform init -input=false -no-color
