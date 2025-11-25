@@ -76,7 +76,8 @@ jobs:
     name: Terraform Destroy (optional)
     runs-on: ubuntu-latest
     needs: [apply]    # still depends on apply chronologically
-    if: always()      # allow execution even if apply fails
+    if: always() && (needs.apply.result == 'failure' || needs.apply.result == 'success' && github.event_name == 'workflow_dispatch')
+
     environment: destroy  # <-- optional second approval before destroy
 
     steps:
