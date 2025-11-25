@@ -2,20 +2,10 @@ name: AWS Microservices Infra CI/CD Pipeline
 
 on:
   push:
-    branches: [main]
-  workflow_dispatch:
-    inputs:
-      action:
-        description: 'Choose action'
-        required: true
-        default: 'apply'
-        type: choice
-        options:
-          - apply
-          - destroy
+    branches: [ "main" ]
 
 permissions:
-  id-token: write  # AWS OIDC
+  id-token: write
   contents: read
 
 env:
@@ -24,10 +14,9 @@ env:
   TF_VAR_aws_region: ${{ secrets.AWS_REGION }}
 
 jobs:
-  terraform_plan:
-    name: Terraform Plan on Main Push
+  plan:
+    name: Terraform Plan
     runs-on: ubuntu-latest
-    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
 
     steps:
       - uses: actions/checkout@v4
@@ -38,104 +27,74 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-
-      # - name: Terraform Fmt Check
-      #   working-directory: ${{ env.TF_WORKING_DIR }}
-      #   run: terraform fmt -check -recursive
+      - uses: hashicorp/setup-terraform@v3
 
       - name: Terraform Init
         working-directory: ${{ env.TF_WORKING_DIR }}
-        run: terraform init -input=false -no-color
-
-      - name: Terraform Validate
-        working-directory: ${{ env.TF_WORKING_DIR }}
-        run: terraform validate -no-color
+        run: terraform init -no-color
 
       - name: Terraform Plan
         working-directory: ${{ env.TF_WORKING_DIR }}
-        run: terraform plan -input=false -var-file=envs/prod.tfvars -out=tfplan -no-color | tee plan_output.txt
+        run: terraform plan -no-color -var-file=envs/prod.tfvars -out=tfplan
 
-      - name: Upload Plan Artifact
+      - name: Upload Plan
         uses: actions/upload-artifact@v4
         with:
-          name: tfplan-${{ github.run_id }}
-          path: |
-            ${{ env.TF_WORKING_DIR }}/tfplan
-            ${{ env.TF_WORKING_DIR }}/plan_output.txt
+          name: tfplan
+          path: ${{ env.TF_WORKING_DIR }}/tfplan
 
-
-  terraform_apply:
-    name: Terraform Apply (Manual Approval)
-    runs-on: ubuntu-latest    
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'apply'
-    needs: terraform_plan
-
-    environment:
-      name: production  # Require manual approval in GitHub
+  apply:
+    name: Terraform Apply
+    runs-on: ubuntu-latest
+    needs: plan
+    environment: production  # <-- Approval before deployment
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
+      - uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@v3
 
       - name: Terraform Init
         working-directory: ${{ env.TF_WORKING_DIR }}
-        run: terraform init -input=false -no-color
+        run: terraform init -no-color
 
-      - name: Download tfplan Artifact
-        uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4
         with:
-          name: tfplan-${{ github.run_id }}
+          name: tfplan
           path: ${{ env.TF_WORKING_DIR }}
 
-      - name: Verify Downloaded Plan Exists
+      - name: Apply
         working-directory: ${{ env.TF_WORKING_DIR }}
-        run: ls -lah && file tfplan
+        run: terraform apply -auto-approve tfplan
 
-      - name: Terraform Apply
-        working-directory: ${{ env.TF_WORKING_DIR }}
-        run: terraform apply -input=false -auto-approve tfplan
-
-
-  terraform_destroy:
-    name: Terraform Destroy (Manual Approval)
+  destroy:
+    name: Terraform Destroy (optional)
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'destroy'
-    needs: terraform_plan   # require plan first for safety visibility
-
-    environment:
-      name: production     # requires approval just like apply
+    needs: apply
+    environment: destroy  # <-- optional second approval before destroy
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
+      - uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@v3
 
       - name: Terraform Init
         working-directory: ${{ env.TF_WORKING_DIR }}
-        run: terraform init -input=false -no-color
+        run: terraform init -no-color
 
-      - name: Confirm Manual Approval
-        run: |
-          echo "🚨 WARNING: Destroy action requested!"
-          echo "Terraform will DESTROY all AWS resources if approved."
+      - name: Confirm Destroy
+        run: echo "Types YES to confirm destruction"
 
-      - name: Terraform Destroy (requires manual confirmation)
+      - name: Destroy
         working-directory: ${{ env.TF_WORKING_DIR }}
-        run: terraform destroy -input=false -auto-approve -var-file=envs/prod.tfvars
+        run: terraform destroy -auto-approve -var-file=envs/prod.tfvars
