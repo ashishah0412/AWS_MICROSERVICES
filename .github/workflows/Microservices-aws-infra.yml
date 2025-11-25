@@ -14,34 +14,34 @@ env:
   TF_VAR_aws_region: ${{ secrets.AWS_REGION }}
 
 jobs:
-  plan:
-    name: Terraform Plan
-    runs-on: ubuntu-latest
+  # plan:
+  #   name: Terraform Plan
+  #   runs-on: ubuntu-latest
 
-    steps:
-      - uses: actions/checkout@v4
+  #   steps:
+  #     - uses: actions/checkout@v4
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: ${{ secrets.AWS_REGION }}
+  #     - name: Configure AWS Credentials
+  #       uses: aws-actions/configure-aws-credentials@v4
+  #       with:
+  #         role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+  #         aws-region: ${{ secrets.AWS_REGION }}
 
-      - uses: hashicorp/setup-terraform@v3
+  #     - uses: hashicorp/setup-terraform@v3
 
-      - name: Terraform Init
-        working-directory: ${{ env.TF_WORKING_DIR }}
-        run: terraform init -no-color
+  #     - name: Terraform Init
+  #       working-directory: ${{ env.TF_WORKING_DIR }}
+  #       run: terraform init -no-color
 
-      - name: Terraform Plan
-        working-directory: ${{ env.TF_WORKING_DIR }}
-        run: terraform plan -no-color -var-file=envs/prod.tfvars -out=tfplan
+  #     - name: Terraform Plan
+  #       working-directory: ${{ env.TF_WORKING_DIR }}
+  #       run: terraform plan -no-color -var-file=envs/prod.tfvars -out=tfplan
 
-      - name: Upload Plan
-        uses: actions/upload-artifact@v4
-        with:
-          name: tfplan
-          path: ${{ env.TF_WORKING_DIR }}/tfplan
+  #     - name: Upload Plan
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: tfplan
+  #         path: ${{ env.TF_WORKING_DIR }}/tfplan
 
   # apply:
     # name: Terraform Apply
