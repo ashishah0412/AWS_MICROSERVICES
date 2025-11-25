@@ -64,7 +64,7 @@ jobs:
     needs: terraform_plan
 
     environment:
-      name: production  # Require manual approval in GitHub UI
+      name: production  # Require manual approval in GitHub
 
     steps:
       - uses: actions/checkout@v4
