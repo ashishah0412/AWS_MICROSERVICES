@@ -3,7 +3,16 @@ name: AWS Microservices Infra CI/CD Pipeline
 on:
   push:
     branches: [main]
-  workflow_dispatch: # Allows manual Apply trigger
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Choose action'
+        required: true
+        default: 'apply'
+        type: choice
+        options:
+          - apply
+          - destroy
 
 permissions:
   id-token: write  # AWS OIDC
@@ -59,8 +68,8 @@ jobs:
 
   terraform_apply:
     name: Terraform Apply (Manual Approval)
-    runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest    
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'apply'
     needs: terraform_plan
 
     environment:
@@ -99,7 +108,7 @@ jobs:
   terraform_destroy:
     name: Terraform Destroy (Manual Approval)
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'destroy'
     needs: terraform_plan   # require plan first for safety visibility
 
     environment:
