@@ -10,7 +10,7 @@ resource "aws_lb" "ui_alb" {
   security_groups    = [aws_security_group.ui_alb_sg.id]
   subnets            = var.subnets
 
-  enable_deletion_protection = true
+  enable_deletion_protection = false
   idle_timeout               = 60
 
   tags = {
