@@ -2,22 +2,24 @@ name: AWS Microservices Infra CI/CD Pipeline
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
+  workflow_dispatch: # Allows manual Apply trigger
 
 permissions:
-  id-token: write
+  id-token: write  # AWS OIDC
   contents: read
 
 env:
   TF_WORKING_DIR: aws_infra/
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  TF_VAR_aws_region: ${{ secrets.AWS_REGION }}
 
 jobs:
-  terraform:
+  terraform_plan:
+    name: Terraform Plan on Main Push
     runs-on: ubuntu-latest
-    environment: production  # This ensures approval is required before apply step
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
-  
     steps:
       - uses: actions/checkout@v4
 
@@ -30,13 +32,65 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      # Re-run the Terraform Plan here to regenerate tfplan before destroy
+      - name: Terraform Fmt Check
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform fmt -check -recursive
+
       - name: Terraform Init
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform init -input=false -no-color
 
+      - name: Terraform Validate
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform validate -no-color
+
       - name: Terraform Plan
         working-directory: ${{ env.TF_WORKING_DIR }}
-        run: terraform plan -input=false -var-file=envs/prod.tfvars -out=tfplan -no-color | tee plan_output.txt  # Generate a new tfplan
+        run: terraform plan -input=false -var-file=envs/prod.tfvars -out=tfplan -no-color | tee plan_output.txt
 
-     
+      - name: Upload Plan Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan-${{ github.run_id }}
+          path: |
+            ${{ env.TF_WORKING_DIR }}/tfplan
+            ${{ env.TF_WORKING_DIR }}/plan_output.txt
+
+
+  terraform_apply:
+    name: Terraform Apply (Manual Approval)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    needs: terraform_plan
+
+    environment:
+      name: production  # Require manual approval in GitHub UI
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform init -input=false -no-color
+
+      - name: Download tfplan Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan-${{ github.run_id }}
+
+      - name: Verify Downloaded Plan Exists
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: ls -lah && file tfplan
+
+      - name: Terraform Apply
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform apply -input=false -auto-approve tfplan
