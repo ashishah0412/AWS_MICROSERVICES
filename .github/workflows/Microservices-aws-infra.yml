@@ -3,7 +3,6 @@ name: AWS Microservices Infra CI/CD Pipeline
 on:
   push:
     branches: [ "main" ]
-  workflow_dispatch:  
 
 permissions:
   id-token: write
@@ -72,29 +71,3 @@ jobs:
       - name: Apply
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform apply -auto-approve tfplan
-
-  destroy:
-    name: Terraform Destroy (optional)
-    runs-on: ubuntu-latest
-    needs: [apply]  # keeps chronological order
-    if: github.event_name == 'workflow_dispatch'  # only manual trigger
-    environment:
-      name: destroy  # approval required before execution
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: ${{ secrets.AWS_REGION }}
-
-      - uses: hashicorp/setup-terraform@v3
-
-      - name: Terraform Init
-        working-directory: ${{ env.TF_WORKING_DIR }}
-        run: terraform init -no-color
-
-      - name: Destroy
-        working-directory: ${{ env.TF_WORKING_DIR }}
-        run: terraform destroy -auto-approve -var-file=envs/prod.tfvars
