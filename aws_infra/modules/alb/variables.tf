@@ -2,7 +2,7 @@ variable "vpc_id" {
   type = string
 }
 
-variable "subnets" {
+variable "public_subnets" {
   type = list(string)
 }
 
@@ -19,10 +19,4 @@ variable "ecs_services" {
   type = map(object({
     port = number
   }))
-}
-
-variable "allowed_cidr_blocks" {
-  description = "CIDRs allowed to reach the internal ALBs"
-  type        = list(string)
-  default     = ["10.0.0.0/8"]
 }

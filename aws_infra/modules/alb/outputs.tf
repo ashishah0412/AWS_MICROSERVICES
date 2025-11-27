@@ -10,6 +10,10 @@ output "ui_tg_arn" {
   value = aws_lb_target_group.ui_tg.arn
 }
 
+output "ecs_tasks_sg_id" {
+  value = aws_security_group.ecs_tasks_sg.id
+}
+
 output "api_tg_arns" {
-  value = { for k, v in aws_lb_target_group.api_tgs : k => v.arn }
+  value = try({ for k, v in aws_lb_target_group.api_tgs : k => v.arn }, {})
 }
