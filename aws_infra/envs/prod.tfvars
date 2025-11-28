@@ -14,8 +14,8 @@ ecs_cluster_name = "prod-ecs-cluster"
 # ALB Certificates (from ACM)
 # -----------------------------
 # Replace with your actual ACM certificate ARN from AWS Console
-ui_cert_arn  = "arn:aws:acm:us-east-1:261358761679:certificate/YOUR-CERT-ID"
-api_cert_arn = "arn:aws:acm:us-east-1:261358761679:certificate/YOUR-CERT-ID"
+# ui_cert_arn  = "arn:aws:acm:us-east-1:261358761679:certificate/YOUR-CERT-ID"
+# api_cert_arn = "arn:aws:acm:us-east-1:261358761679:certificate/YOUR-CERT-ID"
 
 # -----------------------------
 # ECR and ECS Service Images

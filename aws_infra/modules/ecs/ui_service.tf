@@ -15,7 +15,5 @@ resource "aws_ecs_service" "ui" {
     target_group_arn = var.ui_alb_tg_arn
     container_name   = "ui"
     container_port   = 8080  # Match container port
-  }
-
-  depends_on = [var.ui_alb_listener_arn]
+  }  
 }

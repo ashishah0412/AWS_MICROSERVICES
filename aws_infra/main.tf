@@ -16,15 +16,13 @@ module "alb" {
   source       = "./modules/alb"
   vpc_id       = module.network.vpc_id
   public_subnets = module.network.public_subnets  # Pass public subnets
-  ui_cert_arn  = var.ui_cert_arn
-  api_cert_arn = var.api_cert_arn
   ecs_services = var.ecs_services
 }
 
 module "ecs" {
   source              = "./modules/ecs"
   vpc_id              = module.network.vpc_id
-  private_subnets    = module.network.private_subnets
+  private_subnets     = module.network.private_subnets
   cluster_name        = var.ecs_cluster_name
   ui_image            = var.ui_image
   ecs_services        = var.ecs_services

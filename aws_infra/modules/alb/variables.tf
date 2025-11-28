@@ -6,12 +6,9 @@ variable "public_subnets" {
   type = list(string)
 }
 
-variable "ui_cert_arn" {
-  type = string
-}
-
-variable "api_cert_arn" {
-  type = string
+variable "certificate_arn" {
+  type    = string
+  default = ""  # optional now — empty when not using ACM/HTTPS
 }
 
 variable "ecs_services" {
