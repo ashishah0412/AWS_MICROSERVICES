@@ -26,6 +26,13 @@ resource "aws_ecs_task_definition" "ui" {
   ])
 }
 
+resource "aws_cloudwatch_log_group" "ui" {
+  name              = "/ecs/ui"
+  retention_in_days = 7
+}
+
+
+
 resource "aws_ecs_task_definition" "backend" {
   for_each                 = var.ecs_services
   family                   = each.key
