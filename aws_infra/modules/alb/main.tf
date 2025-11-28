@@ -1,5 +1,5 @@
 ######################################
-# UI ALB (Public-facing with HTTPS)
+# UI ALB (Public-facing)
 ######################################
 
 resource "aws_lb" "ui_alb" {
@@ -23,10 +23,10 @@ resource "aws_lb" "ui_alb" {
 
 resource "aws_security_group" "ui_alb_sg" {
   name        = "ui-alb-sg"
-  description = "Security group for UI ALB - allow HTTP/HTTPS from internet"
+  description = "Security group for UI ALB - allow HTTP from internet"
   vpc_id      = var.vpc_id
 
-  # HTTP - redirect to HTTPS
+
   ingress {
     from_port   = 80
     to_port     = 80

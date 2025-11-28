@@ -27,8 +27,7 @@ module "ecs" {
   ui_image            = var.ui_image
   ecs_services        = var.ecs_services
   ecr_repo_prefix     = var.ecr_repo_prefix
-  ui_alb_tg_arn       = module.alb.ui_tg_arn
-  ui_alb_listener_arn = module.alb.ui_alb_https_listener_arn
+  ui_alb_tg_arn       = module.alb.ui_tg_arn  
   ecs_tasks_sg_id     = module.alb.ecs_tasks_sg_id
   api_alb_tgs         = module.alb.api_tg_arns
   ecs_task_exec_role  = module.iam.ecs_task_exec_role_arn
