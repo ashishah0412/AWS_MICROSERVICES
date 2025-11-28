@@ -9,7 +9,7 @@ tags = { Name = "prod-vpc" }
 resource "aws_subnet" "private" {
   count              = length(var.azs)
   vpc_id             = aws_vpc.main.id
-  cidr_block         = cidrsubnet(var.vpc_cidr, 4, count.index + length(var.azs))
+  cidr_block         = cidrsubnet(var.vpc_cidr, 8, count.index + length(var.azs))
   availability_zone  = var.azs[count.index]
   tags               = { Name = "private-subnet-${count.index}" }
 }
@@ -24,7 +24,7 @@ resource "aws_internet_gateway" "main" {
 resource "aws_subnet" "public" {
   count                   = length(var.azs)
   vpc_id                  = aws_vpc.main.id
-  cidr_block              = cidrsubnet(var.vpc_cidr, 4, count.index)
+  cidr_block              = cidrsubnet(var.vpc_cidr, 8, count.index)
   availability_zone       = var.azs[count.index]
   map_public_ip_on_launch = true
   tags                    = { Name = "public-subnet-${count.index}" }
@@ -46,4 +46,36 @@ resource "aws_route_table_association" "public" {
   count          = length(aws_subnet.public)
   subnet_id      = aws_subnet.public[count.index].id
   route_table_id = aws_route_table.public.id
+}
+
+
+resource "aws_eip" "nat" { 
+  count  = length(aws_subnet.public)
+  domain = "vpc"
+}
+
+resource "aws_nat_gateway" "nat" {
+  count         = length(aws_subnet.public)
+  allocation_id = aws_eip.nat[count.index].id
+  subnet_id     = aws_subnet.public[count.index].id
+}
+# Add routes in private route tables to NAT gateway
+resource "aws_route" "private_to_nat" {
+  count              = length(aws_subnet.private)
+  route_table_id         = aws_route_table.private[count.index].id
+  destination_cidr_block = "0.0.0.0/0"
+  nat_gateway_id         = aws_nat_gateway.nat[count.index].id
+}
+
+# Route table for private subnets
+resource "aws_route_table" "private" {
+  count  = length(aws_subnet.private)
+  vpc_id = aws_vpc.main.id
+  tags   = { Name = "private-rt-${count.index}" }
+}
+
+resource "aws_route_table_association" "private" {
+  count          = length(aws_subnet.private)
+  subnet_id      = aws_subnet.private[count.index].id
+  route_table_id = aws_route_table.private[count.index].id
 }
