@@ -10,7 +10,7 @@ subnets = var.private_subnets
 assign_public_ip = false
 }
 load_balancer {
-target_group_arn = var.api_alb_tgs[each.key]
+# target_group_arn = var.api_alb_tgs[each.key]
 container_name = each.key
 container_port = each.value.port
 }
