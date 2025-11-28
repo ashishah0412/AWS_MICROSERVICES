@@ -85,7 +85,7 @@ resource "aws_security_group" "ecs_tasks_sg" {
 
 resource "aws_lb_target_group" "ui_tg" {
   name        = "ui-tg"
-  port        = 8080  # Match container port
+  port        = 80  # Match container port
   protocol    = "HTTP"
   target_type = "ip"
   vpc_id      = var.vpc_id
@@ -93,7 +93,7 @@ resource "aws_lb_target_group" "ui_tg" {
   health_check {
     path                = "/"
     protocol            = "HTTP"
-    port                = "8080"
+    port                = "80"
     healthy_threshold   = 2
     unhealthy_threshold = 3
     timeout             = 5

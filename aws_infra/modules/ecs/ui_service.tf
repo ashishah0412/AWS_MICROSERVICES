@@ -14,6 +14,6 @@ resource "aws_ecs_service" "ui" {
   load_balancer {
     target_group_arn = var.ui_alb_tg_arn
     container_name   = "ui"
-    container_port   = 8080  # Match container port
+    container_port   = 80  # Match container port
   }  
 }

@@ -12,7 +12,7 @@ resource "aws_ecs_task_definition" "ui" {
       name              = "ui"
       image             = var.ui_image
       essential         = true
-      portMappings      = [{ containerPort = 8080, hostPort = 8080 }]  # Match your app port
+      portMappings      = [{ containerPort = 80, hostPort = 80 }]  # Match your app port
       
       logConfiguration = {
         logDriver = "awslogs"
