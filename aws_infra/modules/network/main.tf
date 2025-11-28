@@ -9,7 +9,7 @@ tags = { Name = "prod-vpc" }
 resource "aws_subnet" "private" {
   count              = length(var.azs)
   vpc_id             = aws_vpc.main.id
-  cidr_block         = cidrsubnet(var.vpc_cidr, 4, count.index)
+  cidr_block         = cidrsubnet(var.vpc_cidr, 4, count.index + length(var.azs))
   availability_zone  = var.azs[count.index]
   tags               = { Name = "private-subnet-${count.index}" }
 }
@@ -24,7 +24,7 @@ resource "aws_internet_gateway" "main" {
 resource "aws_subnet" "public" {
   count                   = length(var.azs)
   vpc_id                  = aws_vpc.main.id
-  cidr_block              = cidrsubnet(var.vpc_cidr, 4, count.index + 100)
+  cidr_block              = cidrsubnet(var.vpc_cidr, 4, count.index)
   availability_zone       = var.azs[count.index]
   map_public_ip_on_launch = true
   tags                    = { Name = "public-subnet-${count.index}" }
