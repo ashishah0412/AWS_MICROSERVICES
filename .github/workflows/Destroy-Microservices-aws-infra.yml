@@ -1,4 +1,4 @@
-name: Terraform Destroy Pipeline
+name: Terraform AWS Infra Destroy Pipeline
 
 on:
   workflow_dispatch:
