@@ -2,8 +2,8 @@ variable "aws_region" { default = "us-east-1" }
 variable "vpc_cidr" {}
 variable "azs" { type = list(string) }
 
-variable "ui_cert_arn" {}
-variable "api_cert_arn" {}
+# variable "ui_cert_arn" {}
+# variable "api_cert_arn" {}
 
 variable "ecs_cluster_name" {}
 variable "ui_image" {}
